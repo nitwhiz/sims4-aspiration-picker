@@ -8,9 +8,10 @@ const results = [];
 
 const save = () => {
   Promise.all(
-    results.map(
-      (r) => axios.get(r.image, { responseType: 'arraybuffer' }).then(({ data }) => data)
-    )
+    results
+      .map(
+        (r) => axios.get(r.image, { responseType: 'arraybuffer' }).then(({ data }) => data)
+      )
   ).then((images) => {
     images.forEach((iBuf, i) => {
       fs.writeFileSync(
@@ -26,6 +27,8 @@ const save = () => {
       JSON.stringify(results, null, 2),
       'utf8'
     );
+  }).catch((e) => {
+    console.error(e);
   });
 }
 
@@ -38,7 +41,9 @@ fs.createReadStream(file)
         en: data.name_en,
       },
       image: data.image.split('.png')[0] + '.png',
-      adultOnly: data.adult_only === '1'
+      isAdult: data.is_adult === '1',
+      isTeen: data.is_teen === '1',
+      isChild: data.is_child === '1',
     });
   })
   .on('end', () => {

@@ -3,8 +3,18 @@
     <h1>The Sims 4 Aspiration Picker</h1>
     <div class="settings">
       <div :class="['switch', cycling ? 'disabled' : 'enabled']">
-        <div :class="['option', adult ? 'active' : 'inactive']" @click="setAdult(true)">Adult</div>
-        <div :class="['option', adult ? 'inactive' : 'active']" @click="setAdult(false)">Child</div>
+        <div
+          :class="['option', isAdultFilter ? 'active' : 'inactive']"
+          @click="setAdultFilter()"
+        >Adult</div>
+        <div
+          :class="['option', isTeenFilter ? 'active' : 'inactive']"
+          @click="setTeenFilter()"
+        >Teen</div>
+        <div
+          :class="['option', isChildFilter ? 'active' : 'inactive']"
+          @click="setChildFilter()"
+        >Child</div>
       </div>
     </div>
     <div class="picker">
@@ -39,10 +49,19 @@ interface Aspiration {
   names: {
     en: string;
   },
-  adultOnly: boolean;
+  isAdult: boolean;
+  isTeen: boolean;
+  isChild: boolean;
 }
 
 type Language = 'en';
+
+// eslint-disable-next-line no-shadow
+const enum FilterType {
+  ADULT,
+  TEEN,
+  CHILD
+}
 
 @Component
 export default class App extends Vue {
@@ -52,7 +71,7 @@ export default class App extends Vue {
 
   private language: Language = 'en';
 
-  private adult = true;
+  private filterType: FilterType = FilterType.ADULT;
 
   private aspirationWrapper!: HTMLDivElement;
 
@@ -62,6 +81,30 @@ export default class App extends Vue {
 
   public mounted(): void {
     this.aspirationWrapper = this.$refs.aWrapper as HTMLDivElement;
+  }
+
+  private get isAdultFilter(): boolean {
+    return this.filterType === FilterType.ADULT;
+  }
+
+  private get isTeenFilter(): boolean {
+    return this.filterType === FilterType.TEEN;
+  }
+
+  private get isChildFilter(): boolean {
+    return this.filterType === FilterType.CHILD;
+  }
+
+  private setAdultFilter(): void {
+    this.filterType = FilterType.ADULT;
+  }
+
+  private setTeenFilter(): void {
+    this.filterType = FilterType.TEEN;
+  }
+
+  private setChildFilter(): void {
+    this.filterType = FilterType.CHILD;
   }
 
   private startCycle(): void {
@@ -102,9 +145,9 @@ export default class App extends Vue {
     }
   }
 
-  private setAdult(adult: boolean): void {
+  private setFilterType(filterType: FilterType): void {
     if (!this.cycling) {
-      this.adult = adult;
+      this.filterType = filterType;
     }
   }
 
@@ -120,7 +163,11 @@ export default class App extends Vue {
   }
 
   private get filteredAspirations(): Aspiration[] {
-    return App.shuffledAspirations.filter((a) => a.adultOnly === this.adult);
+    return App.shuffledAspirations.filter((a) => (
+      (a.isAdult && this.isAdultFilter)
+      || (a.isTeen && this.isTeenFilter)
+      || (a.isChild && this.isChildFilter)
+    ));
   }
 
   private get aspirationWindow(): Aspiration[] {
@@ -260,9 +307,10 @@ $windowSize: 100px;
       .aspiration {
         display: flex;
 
-        padding: 0 12px 0 24px;
+        padding: 0 12px 0 128px;
 
         align-items: center;
+        width: 100%;
 
         .image {
           display: flex;
@@ -275,7 +323,7 @@ $windowSize: 100px;
           background: #c2ddff;
 
           height: 80px;
-          width: 80px;
+          width: 33%;
 
           border: 3px solid #2a5d9a;
 
@@ -300,6 +348,7 @@ $windowSize: 100px;
 
           color: white;
           text-shadow: 0 0 2px #103461;
+          width: 100%;
         }
       }
     }
